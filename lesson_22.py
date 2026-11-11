@@ -11,4 +11,3 @@ class Student:
 student = Student("小明", 60)
 print(student.score)
 
-student.score = 90
