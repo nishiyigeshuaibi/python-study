@@ -1,10 +1,13 @@
 from typing import Optional
-
+import json
 
 class Student:
     def __init__(self, name: str, score: int) -> None:
         self.name = name
         self.score = score
+
+    def to_dict(self) -> dict:
+        return {"name": self.name, "score": self.score}
 
     @property
     def score(self) -> int:
@@ -45,25 +48,72 @@ class StudentGroup:
             return True
         return False
 
-    def get_passing_students(self):
+    def get_passing_students(self) -> list[Student]:
+        return [student for student in self.students if student.score >= 60]
 
+    def passing_rate(self) -> Optional[float]:
+        if not self.students:
+            return None
 
-group = StudentGroup()
-group.add_student(Student("小明", 88))
-group.add_student(Student("小红", 95))
+        return len(self.get_passing_students()) / len(self.students)
 
-print(group.students[1].name)
-print(group.average_score())
+    def to_records(self) -> list[dict]:
+        return [student.to_dict() for student in self.students]
 
-student = group.find_student("小明")
+def test_passing_rate_half():
+    group = StudentGroup()
+    group.add_student(Student("小明", 40))
+    group.add_student(Student("小红", 80))
 
-if student is not None:
-    student.score = 90
+    assert group.passing_rate() == 0.5
 
-print(group.average_score())
+def show_passing_rate(group: StudentGroup) -> None:
+    rate = group.passing_rate()
 
-print(group.remove_student("小明"))
-print(group.remove_student("小明"))
+    if rate is not None:
+        print(f"及格率：{rate:.2%}")
+    else:
+        print("暂无成绩")
 
-empty_group = StudentGroup()
-print(group.average_score(), empty_group.average_score())
+def test_passing_rate_empty():
+    empty_group = StudentGroup()
+    assert empty_group.passing_rate() is None
+
+def test_passing_rate_zero() -> None:
+    group = StudentGroup()
+
+    group.add_student(Student("小明", 40))
+    group.add_student(Student("小红", 50))
+
+    assert group.passing_rate() == 0.0
+
+def test_passing_rate_all() -> None:
+    group = StudentGroup()
+
+    group.add_student(Student("小明", 60))
+    group.add_student(Student("小红", 100))
+
+    assert group.passing_rate() == 1.0, "全部学生及格时，及格率应为 1.0"
+
+def test_passing_rate_after_update() -> None:
+    group = StudentGroup()
+    student = Student("小红", 50)
+    group.add_student(student)
+
+    assert group.passing_rate() == 0.0
+
+    student.score = 80
+    assert group.passing_rate() == 1.0
+
+def save_group(group: StudentGroup) -> None:
+    records = group.to_records()
+    text = json.dumps(records, ensure_ascii=False)
+
+    with open("student_group.json", "w", encoding="utf-8") as f:
+        f.write(text)
+
+with open("student_group.json", "r", encoding="utf-8") as f:
+    text = f.read()
+
+records = json.loads(text)
+print(records[0]["name"])

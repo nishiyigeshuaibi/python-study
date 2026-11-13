@@ -19,6 +19,15 @@ def show_students(students):
             print(number, student["name"], student["score"])
 
 
+def read_positive_integer(prompt):
+    while True:
+        number = read_integer(prompt)
+        if number <= 0:
+            print("请输入大于 0 的整数")
+            continue
+        return number
+
+
 def show_menu():
     print("===欢迎使用学生管理系统===")
     print("1. 查询学生")
@@ -76,11 +85,9 @@ def main():
             else:
                 print("添加失败，请检查姓名和分数")
         elif choice == "6":
-            while True:
-                count = read_integer("要查看前多少位学生：")
-                if count <= 0:
-                    print("人数必须大于 0")
-                    continue
+            count = read_positive_integer("要查看前多少位学生？")
+            top_students = get_top_students(students, count)
+            show_students(top_students)
         else:
             print("无效选择")
 
